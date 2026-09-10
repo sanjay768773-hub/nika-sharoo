@@ -1,116 +1,291 @@
-const wallpapers = [
+const API =
+  "https://wallhaven.cc/api/v1/search";
 
-  {
-    id: 1,
-    title: "Naruto",
-    anime: "Naruto",
-    image: "wallpapers/naruto.jpg"
-  },
+const grid = document.getElementById("wallpaperGrid");
+const loading = document.getElementById("loading");
+const empty = document.getElementById("empty");
 
-  {
-    id: 2,
-    title: "Gojo Satoru",
-    anime: "Jujutsu Kaisen",
-    image: "wallpapers/gojo.jpg"
-  },
+const searchInput =
+  document.getElementById("searchInput");
 
-  {
-    id: 3,
-    title: "Monkey D. Luffy",
-    anime: "One Piece",
-    image: "wallpapers/luffy.jpg"
-  },
+const sectionTitle =
+  document.getElementById("sectionTitle");
 
-  {
-    id: 4,
-    title: "Tanjiro Kamado",
-    anime: "Demon Slayer",
-    image: "wallpapers/tanjiro.jpg"
-  },
-
-  {
-    id: 5,
-    title: "Sung Jin-Woo",
-    anime: "Solo Leveling",
-    image: "wallpapers/solo-leveling.jpg"
-  },
-
-  {
-    id: 6,
-    title: "Itachi Uchiha",
-    anime: "Naruto",
-    image: "wallpapers/itachi.jpg"
-  },
-
-  {
-    id: 7,
-    title: "Zoro",
-    anime: "One Piece",
-    image: "wallpapers/zoro.jpg"
-  },
-
-  {
-    id: 8,
-    title: "Sukuna",
-    anime: "Jujutsu Kaisen",
-    image: "wallpapers/sukuna.jpg"
-  },
-  
-  {
-  id: 9,
-  title: "Kakashi Hatake",
-  anime: "Naruto",
-  image: "wallpapers/kakashi.jpg"
-},
-
-];
+let recent = JSON.parse(
+  localStorage.getItem("nikaRecent") || "[]"
+);
 
 
-let currentWallpaper = null;
+/* =========================
+   LOAD WALLPAPERS
+========================= */
 
+async function loadWallpapers(query = "") {
 
-/* DISPLAY WALLPAPERS */
-
-function displayWallpapers(list = wallpapers) {
-
-  const grid = document.getElementById("wallpaperGrid");
+  showLoading();
 
   grid.innerHTML = "";
+  empty.classList.add("hidden");
 
-  if (list.length === 0) {
-    grid.innerHTML = `<p class="empty">No wallpapers found.</p>`;
+  try {
+
+    let url =
+      API +
+      "?sorting=relevance" +
+      "&purity=100" +
+      "&atleast=3840x2160" +
+      "&categories=010" +
+      "&page=1";
+
+    if (query.trim()) {
+
+      url +=
+        "&q=" +
+        encodeURIComponent(query.trim());
+
+      sectionTitle.textContent =
+        "Results for " + query;
+
+    } else {
+
+      sectionTitle.textContent =
+        "Latest 4K Wallpapers";
+    }
+
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("API error");
+    }
+
+    const data =
+      await response.json();
+
+    hideLoading();
+
+    if (!data.data || data.data.length === 0) {
+
+      empty.classList.remove("hidden");
+
+      return;
+    }
+
+    data.data.forEach(
+      wallpaper => {
+
+        createCard(wallpaper);
+
+      }
+    );
+
+  } catch (error) {
+
+    hideLoading();
+
+    console.error(error);
+
+    empty.classList.remove("hidden");
+
+    empty.querySelector("h3").textContent =
+      "Unable to load wallpapers";
+
+    empty.querySelector("p").textContent =
+      "Try again in a moment.";
+
+  }
+
+}
+
+
+/* =========================
+   CREATE CARD
+========================= */
+
+function createCard(wallpaper) {
+
+  const card =
+    document.createElement("div");
+
+  card.className =
+    "wallpaper-card";
+
+  const image =
+    document.createElement("img");
+
+  image.loading = "lazy";
+
+  image.src =
+    wallpaper.thumbs.large ||
+    wallpaper.path;
+
+  image.alt =
+    wallpaper.category ||
+    "Anime Wallpaper";
+
+  const overlay =
+    document.createElement("div");
+
+  overlay.className =
+    "card-overlay";
+
+  const title =
+    document.createElement("h3");
+
+  title.textContent =
+    "4K Wallpaper";
+
+  const resolution =
+    document.createElement("p");
+
+  resolution.textContent =
+    wallpaper.resolution || "High Resolution";
+
+  overlay.appendChild(title);
+
+  overlay.appendChild(resolution);
+
+  card.appendChild(image);
+
+  card.appendChild(overlay);
+
+  card.onclick = () =>
+    openModal(wallpaper);
+
+  grid.appendChild(card);
+
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+function searchWallpapers() {
+
+  const query =
+    searchInput.value.trim();
+
+  if (!query) {
+
+    loadLatest();
+
     return;
   }
 
-  list.forEach((wallpaper, index) => {
+  saveRecent(query);
 
-    const card = document.createElement("div");
+  loadWallpapers(query);
 
-    card.className = "wallpaper-card";
+}
 
-    card.style.animationDelay = `${index * 0.05}s`;
 
-    card.innerHTML = `
+function quickSearch(name) {
 
-      <img
-        src="${wallpaper.image}"
-        alt="${wallpaper.title}"
-        loading="lazy"
-      >
+  searchInput.value =
+    name;
 
-      <div class="card-overlay">
+  searchWallpapers();
 
-        <h3>${wallpaper.title}</h3>
+}
 
-        <p>
-          ${wallpaper.anime} • 4K
-        </p>
 
+searchInput.addEventListener(
+  "keydown",
+  event => {
+
+    if (event.key === "Enter") {
+
+      searchWallpapers();
+
+    }
+
+  }
+);
+
+
+/* =========================
+   LATEST
+========================= */
+
+function loadLatest() {
+
+  searchInput.value = "";
+
+  loadWallpapers();
+
+}
+
+
+/* =========================
+   HOME
+========================= */
+
+function showHome() {
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+  loadLatest();
+
+}
+
+
+/* =========================
+   RECENT
+========================= */
+
+function showRecent() {
+
+  if (recent.length === 0) {
+
+    sectionTitle.textContent =
+      "Recent Searches";
+
+    grid.innerHTML = `
+      <div class="empty">
+        <h3>No recent searches</h3>
+        <p>Search for your favorite anime.</p>
       </div>
-
     `;
 
-    card.onclick = () => openWallpaper(wallpaper);
+    return;
+  }
+
+  sectionTitle.textContent =
+    "Recent Searches";
+
+  grid.innerHTML = "";
+
+  recent.forEach(name => {
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      "wallpaper-card";
+
+    card.style.height =
+      "150px";
+
+    card.innerHTML = `
+      <div class="card-overlay"
+           style="background:#111;justify-content:center">
+        <h3>🔍 ${escapeHtml(name)}</h3>
+        <p>Search again</p>
+      </div>
+    `;
+
+    card.onclick = () => {
+
+      searchInput.value =
+        name;
+
+      loadWallpapers(name);
+
+    };
 
     grid.appendChild(card);
 
@@ -119,351 +294,218 @@ function displayWallpapers(list = wallpapers) {
 }
 
 
-/* OPEN WALLPAPER */
+/* =========================
+   CATEGORIES
+========================= */
 
-function openWallpaper(wallpaper) {
+function showCategories() {
 
-  currentWallpaper = wallpaper;
+  sectionTitle.textContent =
+    "Anime Categories";
 
-  document.getElementById("modalImage").src = wallpaper.image;
+  grid.innerHTML = "";
 
-  document.getElementById("modalTitle").textContent =
-    wallpaper.title;
+  const categories = [
 
-  document.getElementById("modalCategory").textContent =
-    wallpaper.anime;
+    "Naruto",
+    "One Piece",
+    "Jujutsu Kaisen",
+    "Demon Slayer",
+    "Solo Leveling",
+    "Dragon Ball",
+    "Bleach",
+    "Attack on Titan",
+    "My Hero Academia",
+    "Chainsaw Man",
+    "Tokyo Ghoul",
+    "One Punch Man"
 
-  document.getElementById("downloadBtn").href =
-    wallpaper.image;
+  ];
 
-  document.getElementById("wallpaperModal")
-    .classList.add("show");
+  categories.forEach(name => {
 
-  addRecent(wallpaper);
+    const card =
+      document.createElement("div");
 
-  updateFavoriteButton();
+    card.className =
+      "wallpaper-card";
 
-  document.body.style.overflow = "hidden";
+    card.style.height =
+      "150px";
+
+    card.innerHTML = `
+      <div class="card-overlay"
+           style="background:linear-gradient(135deg,#111,#19111f);justify-content:center">
+        <h3>${escapeHtml(name)}</h3>
+        <p>View wallpapers →</p>
+      </div>
+    `;
+
+    card.onclick = () => {
+
+      searchInput.value =
+        name;
+
+      loadWallpapers(name);
+
+    };
+
+    grid.appendChild(card);
+
+  });
+
 }
 
 
-/* CLOSE WALLPAPER */
+/* =========================
+   MODAL
+========================= */
 
-function closeWallpaper() {
+function openModal(wallpaper) {
 
-  document.getElementById("wallpaperModal")
-    .classList.remove("show");
+  const modal =
+    document.getElementById("modal");
 
-  document.body.style.overflow = "";
+  const image =
+    document.getElementById("modalImage");
+
+  const title =
+    document.getElementById("modalTitle");
+
+  const resolution =
+    document.getElementById("modalResolution");
+
+  const download =
+    document.getElementById("downloadBtn");
+
+  image.src =
+    wallpaper.path;
+
+  title.textContent =
+    "Anime Wallpaper";
+
+  resolution.textContent =
+    wallpaper.resolution ||
+    "High Resolution";
+
+  download.href =
+    wallpaper.path;
+
+  modal.classList.add("active");
+
+  document.body.style.overflow =
+    "hidden";
 
 }
 
 
-/* FAVORITES */
+function closeModal() {
 
-function getFavorites() {
+  document
+    .getElementById("modal")
+    .classList.remove("active");
 
-  return JSON.parse(
-    localStorage.getItem("nikaFavorites") || "[]"
+  document.body.style.overflow =
+    "";
+
+}
+
+
+document
+  .getElementById("modal")
+  .addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target.id ===
+        "modal"
+      ) {
+
+        closeModal();
+
+      }
+
+    }
   );
 
-}
 
+document.addEventListener(
+  "keydown",
+  event => {
 
-function toggleFavorite() {
+    if (event.key === "Escape") {
 
-  if (!currentWallpaper) return;
+      closeModal();
 
-  let favorites = getFavorites();
-
-  const exists =
-    favorites.includes(currentWallpaper.id);
-
-  if (exists) {
-
-    favorites =
-      favorites.filter(id => id !== currentWallpaper.id);
-
-  } else {
-
-    favorites.push(currentWallpaper.id);
+    }
 
   }
-
-  localStorage.setItem(
-    "nikaFavorites",
-    JSON.stringify(favorites)
-  );
-
-  updateFavoriteButton();
-
-}
+);
 
 
-function updateFavoriteButton() {
+/* =========================
+   RECENT SEARCHES
+========================= */
 
-  const button =
-    document.getElementById("favoriteBtn");
-
-  const favorites = getFavorites();
-
-  if (
-    currentWallpaper &&
-    favorites.includes(currentWallpaper.id)
-  ) {
-
-    button.textContent = "♥";
-    button.classList.add("liked");
-
-  } else {
-
-    button.textContent = "♡";
-    button.classList.remove("liked");
-
-  }
-
-}
-
-
-/* RECENT */
-
-function addRecent(wallpaper) {
-
-  let recent =
-    JSON.parse(
-      localStorage.getItem("nikaRecent") || "[]"
-    );
+function saveRecent(query) {
 
   recent =
-    recent.filter(id => id !== wallpaper.id);
+    recent.filter(
+      item =>
+        item.toLowerCase() !==
+        query.toLowerCase()
+    );
 
-  recent.unshift(wallpaper.id);
+  recent.unshift(query);
 
-  recent = recent.slice(0, 8);
+  recent =
+    recent.slice(0, 10);
 
   localStorage.setItem(
     "nikaRecent",
     JSON.stringify(recent)
   );
 
-  displayRecent();
+}
+
+
+/* =========================
+   UI
+========================= */
+
+function showLoading() {
+
+  loading.classList.remove(
+    "hidden"
+  );
 
 }
 
 
-function displayRecent() {
+function hideLoading() {
 
-  const grid =
-    document.getElementById("recentGrid");
-
-  const recent =
-    JSON.parse(
-      localStorage.getItem("nikaRecent") || "[]"
-    );
-
-  const items =
-    recent
-      .map(id =>
-        wallpapers.find(w => w.id === id)
-      )
-      .filter(Boolean);
-
-  if (!items.length) {
-
-    grid.innerHTML =
-      `<p class="empty">No wallpapers viewed yet.</p>`;
-
-    return;
-
-  }
-
-  grid.innerHTML = "";
-
-  items.forEach(wallpaper => {
-
-    const card =
-      document.createElement("div");
-
-    card.className = "wallpaper-card";
-
-    card.innerHTML = `
-
-      <img
-        src="${wallpaper.image}"
-        alt="${wallpaper.title}"
-        loading="lazy"
-      >
-
-      <div class="card-overlay">
-
-        <h3>${wallpaper.title}</h3>
-
-        <p>${wallpaper.anime}</p>
-
-      </div>
-
-    `;
-
-    card.onclick =
-      () => openWallpaper(wallpaper);
-
-    grid.appendChild(card);
-
-  });
+  loading.classList.add(
+    "hidden"
+  );
 
 }
 
 
-/* SEARCH */
+function escapeHtml(text) {
 
-function openSearch() {
-
-  document
-    .getElementById("searchOverlay")
-    .classList.add("open");
-
-  setTimeout(() => {
-
-    document
-      .getElementById("searchInput")
-      .focus();
-
-  }, 400);
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
 
-function closeSearch() {
+/* =========================
+   START WEBSITE
+========================= */
 
-  document
-    .getElementById("searchOverlay")
-    .classList.remove("open");
-
-}
-
-
-function searchWallpapers() {
-
-  const query =
-    document
-      .getElementById("searchInput")
-      .value
-      .toLowerCase()
-      .trim();
-
-  const results =
-    wallpapers.filter(w =>
-      w.title.toLowerCase().includes(query) ||
-      w.anime.toLowerCase().includes(query)
-    );
-
-  const container =
-    document.getElementById("searchResults");
-
-  container.innerHTML = "";
-
-  results.forEach(wallpaper => {
-
-    const card =
-      document.createElement("div");
-
-    card.className = "wallpaper-card";
-
-    card.style.display = "inline-block";
-    card.style.width = "230px";
-    card.style.margin = "8px";
-
-    card.innerHTML = `
-
-      <img
-        src="${wallpaper.image}"
-        alt="${wallpaper.title}"
-      >
-
-      <div class="card-overlay">
-
-        <h3>${wallpaper.title}</h3>
-
-        <p>${wallpaper.anime}</p>
-
-      </div>
-
-    `;
-
-    card.onclick = () => {
-
-      closeSearch();
-      openWallpaper(wallpaper);
-
-    };
-
-    container.appendChild(card);
-
-  });
-
-}
-
-
-/* CATEGORY */
-
-function filterCategory(category) {
-
-  let filtered;
-
-  if (category === "All") {
-
-    filtered = wallpapers;
-
-  } else {
-
-    filtered =
-      wallpapers.filter(
-        w => w.anime === category
-      );
-
-  }
-
-  displayWallpapers(filtered);
-
-  document
-    .getElementById("wallpapers")
-    .scrollIntoView({
-      behavior: "smooth"
-    });
-
-}
-
-
-/* VIEW ALL */
-
-function showAll() {
-
-  displayWallpapers(wallpapers);
-
-  document
-    .getElementById("wallpapers")
-    .scrollIntoView({
-      behavior: "smooth"
-    });
-
-}
-
-
-/* ESC KEY */
-
-document.addEventListener("keydown", event => {
-
-  if (event.key === "Escape") {
-
-    closeSearch();
-    closeWallpaper();
-
-  }
-
-});
-
-
-/* INITIALIZE */
-
-displayWallpapers();
-displayRecent();
+loadLatest();
