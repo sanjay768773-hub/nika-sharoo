@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NIKA SHARO - Premium Anime Wallpapers">
+  <title>NIKA SHARO | Anime Wallpapers</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <a href="#" class="logo">
+      NIKA <span>SHARO</span>
+    </a>
+
+    <nav class="nav">
+      <a href="#home" class="active">Home</a>
+      <a href="#recent">Recent</a>
+      <a href="#categories">Categories</a>
+    </nav>
+
+    <button class="search-btn" onclick="openSearch()">
+      🔍
+    </button>
+  </header>
+
+
+  <!-- SEARCH -->
+  <div class="search-overlay" id="searchOverlay">
+    <button class="close-search" onclick="closeSearch()">✕</button>
+
+    <div class="search-box">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search anime, character..."
+        oninput="searchWallpapers()"
+      >
+      <span>⌕</span>
+    </div>
+
+    <div id="searchResults"></div>
+  </div>
+
+
+  <!-- HERO -->
+  <main id="home">
+
+    <section class="hero">
+      <div class="hero-content">
+        <p class="small-title">WELCOME TO NIKA SHARO</p>
+
+        <h1>
+          Ultimate Anime<br>
+          <span>Wallpapers</span>
+        </h1>
+
+        <p class="hero-text">
+          Discover stunning anime wallpapers in high quality.
+          Find your favorite characters and download wallpapers
+          for your device.
+        </p>
+
+        <a href="#wallpapers" class="explore-btn">
+          Explore Wallpapers →
+        </a>
+      </div>
+    </section>
+
+
+    <!-- TRENDING -->
+    <section class="section" id="wallpapers">
+
+      <div class="section-title">
+        <div>
+          <p class="section-label">DISCOVER</p>
+          <h2>Trending Wallpapers</h2>
+        </div>
+
+        <button class="view-all" onclick="showAll()">
+          View All →
+        </button>
+      </div>
+
+      <div class="wallpaper-grid" id="wallpaperGrid"></div>
+
+    </section>
+
+
+    <!-- CATEGORIES -->
+    <section class="section categories-section" id="categories">
+
+      <div class="section-title">
+        <div>
+          <p class="section-label">EXPLORE</p>
+          <h2>Categories</h2>
+        </div>
+      </div>
+
+      <div class="categories">
+
+        <button onclick="filterCategory('All')">
+          <span>🌌</span>
+          <b>All Anime</b>
+        </button>
+
+        <button onclick="filterCategory('Naruto')">
+          <span>🍥</span>
+          <b>Naruto</b>
+        </button>
+
+        <button onclick="filterCategory('One Piece')">
+          <span>🏴‍☠️</span>
+          <b>One Piece</b>
+        </button>
+
+        <button onclick="filterCategory('Jujutsu Kaisen')">
+          <span>👁️</span>
+          <b>Jujutsu Kaisen</b>
+        </button>
+
+        <button onclick="filterCategory('Demon Slayer')">
+          <span>⚔️</span>
+          <b>Demon Slayer</b>
+        </button>
+
+        <button onclick="filterCategory('Solo Leveling')">
+          <span>🖤</span>
+          <b>Solo Leveling</b>
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- RECENT -->
+    <section class="section" id="recent">
+
+      <div class="section-title">
+        <div>
+          <p class="section-label">HISTORY</p>
+          <h2>Recently Viewed</h2>
+        </div>
+      </div>
+
+      <div class="wallpaper-grid" id="recentGrid">
+        <p class="empty">No wallpapers viewed yet.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- WALLPAPER MODAL -->
+  <div class="modal" id="wallpaperModal">
+
+    <button class="modal-close" onclick="closeWallpaper()">✕</button>
+
+    <div class="modal-content">
+
+      <img id="modalImage" src="" alt="Anime Wallpaper">
+
+      <div class="modal-info">
+
+        <div>
+          <p class="modal-category" id="modalCategory"></p>
+          <h2 id="modalTitle"></h2>
+          <p id="modalResolution">4K • 3840 × 2160</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="favorite" id="favoriteBtn" onclick="toggleFavorite()">
+            ♡
+          </button>
+
+          <a id="downloadBtn" class="download-btn" download>
+            ⬇ Download 4K
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- MOBILE NAV -->
+  <nav class="mobile-nav">
+
+    <a href="#home">
+      <span>⌂</span>
+      Home
+    </a>
+
+    <a href="#recent">
+      <span>◷</span>
+      Recent
+    </a>
+
+    <button onclick="openSearch()">
+      <span>⌕</span>
+      Search
+    </button>
+
+    <a href="#categories">
+      <span>▦</span>
+      Categories
+    </a>
+
+  </nav>
+
+
+  <footer>
+    <div class="footer-logo">NIKA SHARO</div>
+    <p>Anime wallpapers • Made for anime lovers</p>
+    <p class="copyright">
+      © 2026 NIKA SHARO
+    </p>
+  </footer>
+
+
+  <script src="script.js"></script>
+
+</body>
+</html>
