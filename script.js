@@ -54,7 +54,14 @@ const wallpapers = [
     title: "Sukuna",
     anime: "Jujutsu Kaisen",
     image: "wallpapers/sukuna.jpg"
-  }
+  },
+  
+  {
+  id: 9,
+  title: "Kakashi Hatake",
+  anime: "Naruto",
+  image: "wallpapers/kakashi.jpg"
+},
 
 ];
 
